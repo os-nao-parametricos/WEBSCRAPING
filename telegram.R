@@ -1,5 +1,7 @@
 #!/usr/bin/env Rscript
 
+setwd("~/")
+
 args <- commandArgs(trailingOnly = TRUE)
 
 library(telegram)
