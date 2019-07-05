@@ -4,3 +4,9 @@
 .Ruserdata
 .Renviron
 *.log
+
+# google_flights
+google_flights/url.rds
+
+# Temporario
+*.html
