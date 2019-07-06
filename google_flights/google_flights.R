@@ -1,8 +1,10 @@
 #!/usr/bin/env Rscript
 
 library(RSelenium)
+library(dplyr)
 
 args <- commandArgs(trailingOnly = TRUE)
+# args <- c("São Paulo", "Natal")
 
 if (length(args) != 2) {
     stop(
@@ -17,8 +19,13 @@ remDr <- remoteDriver(
     port = 4445L,
     browserName = "firefox"
 )
+# remDr$closeall()
 
 remDr$open()
+
+# não está funcionando! Porque?
+# remDr$setImplicitWaitTimeout(milliseconds = 10000)
+# remDr$setTimeout(milliseconds = 10000)
 
 remDr$navigate("https://www.google.com/flights/")
 # remDr$close()
@@ -32,8 +39,9 @@ webDe <- remDr$findElement("xpath", "//div[@id='sb_ifc50']/input")
 # webDe$highlightElement()
 webDe$clearElement()
 webDe$sendKeysToElement(list(args[1]))
-Sys.sleep(2)
 webDe$sendKeysToElement(list(key = "enter"))
+
+Sys.sleep(1)
 
 # Para -------------------------------------------------------
 webPara <- remDr$findElement("xpath", "//span[@class='gws-flights-form__location-icon']")
@@ -44,8 +52,9 @@ webPara <- remDr$findElement("xpath", "//div[@id='sb_ifc50']/input")
 # webPara$highlightElement()
 webPara$clearElement()
 webPara$sendKeysToElement(list(args[2]))
-Sys.sleep(2)
 webPara$sendKeysToElement(list(key = "enter"))
+
+Sys.sleep(1)
 
 # Ida-Volta --------------------------------------------------
 webIdaVolta <- remDr$findElement("xpath", "//span[@class='gws-flights-form__menu-label']")
@@ -56,12 +65,25 @@ webIdaVoltaMenu <- remDr$findElement("xpath", "//menu-item[@class='mSPnZKpnf91__
 # webIdaVoltaMenu$highlightElement()
 webIdaVoltaMenu$clickElement()
 
+Sys.sleep(1)
+
 # Pesquisa ---------------------------------------------------
 webClick <- remDr$findElement("xpath", "//span[@class='gws-flights-fab__text']")
 # webClick$highlightElement()
 webClick$clickElement()
 
+Sys.sleep(1)
+
 # URL --------------------------------------------------------
 url <- remDr$getCurrentUrl()[[1]]
-saveRDS(url, "url.rds")
+if (file.exists("voo.rds")) {
+    voo <- readRDS("voo.rds")
+    novo_voo <- tibble(de = args[1], para = args[2], url = url)
+    voo <- bind_rows(novo_voo, voo)
+    voo <- voo %>% distinct()
+    saveRDS(voo, "voo.rds")
+} else {
+    voo <- tibble(de = args[1], para = args[2], url = url)
+    saveRDS(voo, "voo.rds")
+}
 remDr$closeall()
