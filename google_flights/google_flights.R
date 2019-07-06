@@ -76,14 +76,29 @@ Sys.sleep(1)
 
 # URL --------------------------------------------------------
 url <- remDr$getCurrentUrl()[[1]]
-if (file.exists("voo.rds")) {
-    voo <- readRDS("voo.rds")
-    novo_voo <- tibble(de = args[1], para = args[2], url = url)
-    voo <- bind_rows(novo_voo, voo)
-    voo <- voo %>% distinct()
-    saveRDS(voo, "voo.rds")
-} else {
-    voo <- tibble(de = args[1], para = args[2], url = url)
-    saveRDS(voo, "voo.rds")
+
+if (!dir.exists("~/databases")) {
+    dir.create("~/databases")
 }
+setwd("~/databases")
+
+if (!dir.exists("google_flights")) {
+    dir.create("google_flights")
+}
+setwd("google_flights")
+
+h <- XML::htmlParse(remDr$getPageSource()[[1]])
+xpath <- "//span[@class='gws-flights-form__location-list']/span"
+voo <- XML::xpathSApply(h, xpath, XML::xmlValue)
+voo <- tolower(gsub("\\s", "", voo))
+voo <- iconv(voo, from = "UTF-8", to = "ASCII//TRANSLIT")
+
+ndir <- paste0(voo, collapse = "_")
+if (!dir.exists(ndir)) {
+    dir.create(ndir)
+}
+setwd(ndir)
+
+saveRDS(url, "url.rds")
+
 remDr$closeall()

@@ -6,7 +6,7 @@
 *.log
 
 # google_flights
-google_flights/url.rds
+google_flights/*.rds
 
 # Temporario
 *.html
