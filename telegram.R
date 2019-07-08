@@ -31,6 +31,16 @@ for (i in 1:length(args)) {
         message <- paste0("*", dt ,"* - Total de noticías coletadas do *G1*: ", n)
         webscraping_log(message)
         
+    } else if (args[i] == "google_flights") {
+        dt <- format(Sys.Date(), "%d/%m/%Y")
+        if (dir.exists(paste0("~/databases/google_flights/", gsub("-", "_", Sys.Date())))) {
+            message <- paste0("*", dt, "* - As páginas de voo foram coletadas.")
+            webscraping_log(message)
+        } else {
+            message <- paste0("*", dt, "* - Problemas na coleta das páginas de voo.")
+            webscraping(message)
+        }
+        
     } else if (args[i] == "crontab") {
         library(cronR)
 
