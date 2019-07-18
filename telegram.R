@@ -1,13 +1,12 @@
 #!/usr/bin/env Rscript
 
-setwd("~/")
-
 args <- commandArgs(trailingOnly = TRUE)
 
 library(telegram)
 library(RMySQL)
 
 webscraping_log <- function(message) {
+    setwd("~/")
     bot <- TGBot$new(token = bot_token("Webscraping"))
     bot$set_default_chat_id(user_id("me"))
     bot$sendMessage(message, parse_mode = "markdown")
@@ -46,10 +45,10 @@ for (i in 1:length(args)) {
 
         cron_rm(id = "telegram_webscraping")
         
-        f <- paste0(getwd(), "/telegram.R")
+        f <- "telegram.R"
 
         ## Add mais scripts AQUI
-        cmd <- cron_rscript(f, rscript_args = c("jornal"))
+        cmd <- cron_rscript(f, rscript_args = c("jornal", "google_flights"))
         cron_add(cmd, at = "10:00", id = "telegram_webscraping", tags =  "webscraping", 
                  description = "Informa status da coleta de dados.")
     } 
