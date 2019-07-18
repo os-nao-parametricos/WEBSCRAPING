@@ -44,7 +44,7 @@ out$cat <- str_extract(out$url, "[0-9]{5}$")
 remDr$close()
 
 # Salva no banco de dados
-con <- dbConnect(MySQL(), dbname = "superbid", host = "127.0.0.1", user = "andryas", password = "211401ka")
+con <- dbConnect(MySQL(), dbname = "superbid", host = "127.0.0.1")
 
 dbWriteTable(con, "config", as.data.frame(out), row.names = FALSE, overwrite = TRUE)
 
