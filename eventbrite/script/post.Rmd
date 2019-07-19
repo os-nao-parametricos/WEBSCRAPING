@@ -1,0 +1,169 @@
+---
+title: "Validando Informações Geográficas"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r, child = "/home/gabriel/suporte/ciencia_de_dados/programacao/R/function/comunicate/knitr_set.Rmd"}
+
+```
+
+```{r}
+require(sf)
+require(magrittr)
+require(dplyr)
+require(ggplot2)
+```
+
+
+```{r}
+source("../function/function_evertbrite.R")
+```
+
+
+
+<hr> 
+A empresa [Eventbrite][eventbrite-site]  é um portal de eventos e atividades disponíveis que você pode participar. Por outro lado, você também pode cadastrar o evento que você está promovendo, que a empresa faz o gerenciamento dos particpantes e organização do canal de pagamentos. Além do Eventbrite, plataformas como [Sympla][sympla-site] tem essa proposta e claro, o [Meetup][meetup-site], porém o meetup é mais tecnologia e estudos. O Eventbrite e Sympla abrange mais diversificação temáticas, como festivais, arte e cultura. Todos os sites também possuem aplicativos.  
+
+Resolvi praticar Web-scraping, começando pelo  `Eventbrite`. A função que desenvolvi, permite extrair todos os eventos da cidade, inserindo o link que lista todos os eventos, como no caso: 
+
++ `https://www.eventbrite.com.br/d/brazil--joinville/all-events/`
+
+```{r, cache = TRUE, echo = TRUE}
+eventbrite_bc <- get.eventbrite(url = "https://www.eventbrite.com.br/d/brazil--balne%C3%A1rio-cambori%C3%BA/all-events/") 
+```
+
+
+Para passar identificar o basta, escolher a cidade na página inicial e clicar em buscar. Neste post, baixei os eventos de Balneário Camboriú. O scrapping não é foco neste post mas sim, verificar se a informação das coordenas geográfica está de acordo com o polígono da cidade.
+
+Os campos que baixei são: 
+
+```{r}
+n_rows_eventbrite <- nrow(eventbrite_bc)
+classe_objeto <- class(eventbrite_bc)
+```
+
+
+```{r,}
+eventbrite_bc %>% 
+  hablar::retype() %>% 
+  glimpse(width = 50) 
+```
+
+O dataset completo possue `r n_rows_eventbrite` eventos. Dessa forma queremos certificar quais locais de Balneário Camboriu ocorrerá os eventos. No R os objetos precisam ser adequadamente moldados para ser visualizados em mapas. O objeto que foi salvo os eventos é da classe `r classe_objeto`, constituindo de uma tabela, como se fosse uma planilha. 
+
+O formato data.frame não suporta, portanto é necessário converter, e uma das classe que suporta é no molde do pacote sf. 
+
+```{r, echo = TRUE}
+# converter data.frame em um novo objeto espacial
+geo_eventbrite <- 
+  eventbrite_bc %>%  # objeto data.frame
+  sf::st_as_sf(
+    coords = c("longitude", "latitude"), # As coordenadas geográficas  
+    agr = "identity", # Cada ponto é único (identidade)
+    crs = 4326 # Projeção Espacial
+  )
+```
+
+Observando o novo formato dos dados foi criado um novo campo *geometry* que é a união das coordenadas geográficas.   
+
+```{r}
+glimpse(geo_eventbrite)
+```
+
+A conversão em um objeto `sf` faz com que crie outros campos no objeto, como `bbox`, `epsg` e `proj4string`, um ótimo livro que explica é o [Geocomputing with R][geocomputingR] que trata dos detalhes que envolvem um objeto espacial no R.
+
+```{r}
+geo_eventbrite %>% 
+  head(n = 1)
+```
+
+<hr> 
+
+Visualizando os dados, por meio do pacote `ggplot2`. 
+
+```{r, echo = TRUE}
+
+ggplot() +  # Cria o ambient gráfico
+  ggspatial::annotation_map_tile(type = "osm", zoom = 10) + # Basemap
+  geom_sf(data = geo_eventbrite) + # le o objeto espacial
+  theme_void() +
+  theme(panel.grid.major =  element_line(colour = "transparent"),
+        plot.title = element_text(hjust = .5)) +
+  labs(title = "Eventos Balneário Camboriú") 
+```
+
+Balneário camboriú é conhecida por ser uma das praias mais baladas de Santa Catarina, logo, eventos distantes da costa são incoerência do filtro do site, assim como a eventos ao longo de todo o litoral do estado. 
+
+Portanto, precisamos validar geograficamente com a geografia da cidade. O recente pacote [geobr][geobr] permite extrair qualquer munícipio do brasil, passando o código municipal. O Código IBGE de todos os municípios pode ser consultados na [lista][lista-ibge] . 
+
+```{r, echo = TRUE, eval = FALSE}
+geo_bc <- geobr::read_municipality(code_muni = 4202008, year = 2018)
+
+geo_bc %<>% 
+  sf::st_transform(4326)
+```
+
+```{r}
+# saveRDS(geo_bc, file = "../data/bc.RDS")
+geo_bc <- readRDS(file = "../data/bc.RDS")
+```
+
+Vamos agora verificar novamente o mapa, com o acréscimo da geografia de Camboriú
+
+
+```{r, echo = TRUE}
+ggplot() + 
+  ggspatial::annotation_map_tile(type = "osm", zoom = 10) + 
+  geom_sf(data = geo_eventbrite) + 
+  geom_sf(data = geo_bc, fill = "transparent", color = "red") + # Acréscimo Camboriú.
+  theme_void() +
+  theme(panel.grid.major =  element_line(colour = "transparent"),
+        plot.title = element_text(hjust = .5)) +
+  labs(title = "Eventos Balneário Camboriú") 
+```
+
+O contorno vermelho mostra a cidade de Balneário Camboriú, repare que há muitos eventos distantes da área da cidade. O R possui algumas funções de geoprocessamento, como verificar as coordenadas geográficas estão na cidade. 
+
+```{r, echo = TRUE}
+# Conta quantos pontos tem no polígono 
+n_points_in_polygons <- 
+  st_covers(x = geo_bc, # Polígono de Balneário Camboríu
+            y= geo_eventbrite) %>%  # Pontos dos Eventos
+  lengths()
+# Percent
+percentage_point_in_polygons <- (n_points_in_polygons/nrow(eventbrite_bc))*100
+```
+
+Apenas `r n_points_in_polygons` eventos caem dentro do polígono, representando `r  percentage_point_in_polygons` %. Agora faremos a intersecção, permanecendo apenas os eventos que realmente são de Balneário Camboríu e novamente visualizando o mapa.  
+
+```{r, echo = TRUE}
+# Interseccção de Eventos com a cidade
+eventbrite_inside_bc <- 
+  st_intersection(x = geo_bc, 
+                  y = geo_eventbrite)
+```
+
+
+
+```{r}
+ggplot() + 
+  ggspatial::annotation_map_tile(type = "cartolight", zoom = 12) + # Basemap
+  geom_sf(data = eventbrite_inside_bc) +
+  geom_sf(data = geo_bc, fill = "transparent", color = "red") +
+  theme_void() +
+  theme(panel.grid.major =element_line(colour = "transparent"),
+        plot.title = element_text(hjust = .5)) +
+  labs(title = "Eventos Balneário Camboriú") 
+```
+
+Agora sim está compatível os eventos que foram extraídos do `Eventbrite` com a cidade relacionada. 
+
+<!-- https://r-spatial.github.io/sf/ -->
+[geobr]:https://github.com/ipeaGIT/geobr
+[lista-ibge]: http://www.roseno.info/cidadesconsulta.aspx 
+[eventbrite-site]: https://www.eventbrite.com.br/
+[sympla-site]: https://www.sympla.com.br/
+[meetup-site]: https://www.meetup.com/pt-BR/
+[geocomputingR]: https://geocompr.robinlovelace.net/spatial-class.html 

@@ -1,0 +1,11 @@
+base
+knitr
+sf
+magrittr
+dplyr
+ggplot2
+xml2
+rvest
+stringr
+rebus
+purrr
