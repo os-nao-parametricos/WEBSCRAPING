@@ -2,6 +2,7 @@
 
 args <- commandArgs(trailingOnly = TRUE)
 
+# Funções ----------------------------------------
 htmlParse2 <- function(url) {
     while (TRUE) {
         out <- try(htmlParse(RCurl::getURL(url)), silent = TRUE)
@@ -74,6 +75,7 @@ coleta_noticias <- function(N) {
 
     return(conteudo)
 }
+# ------------------------------------------------
 
 if (args[1] == "tudo" | args[1] == "hoje") {
     library(tidyverse)
@@ -87,7 +89,7 @@ if (args[1] == "tudo" | args[1] == "hoje") {
     if (nrow(conteudo) == 0) stop("Nenhuma notícia coletada.")
     
     # Conexão com o banco
-    con <- dbConnect(MySQL(), host = "127.0.0.1", dbname = "jornal")
+    con <- dbConnect(MySQL(), host = "127.0.0.1", dbname = "webscraping")
 
     # Pega as últimas noticias da última semana
     conteudo.ult.dias <- dbSendQuery(con,

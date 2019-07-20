@@ -11,15 +11,13 @@ webscraping_log <- function(message) {
     bot$set_default_chat_id(user_id("me"))
     bot$sendMessage(message, parse_mode = "markdown")
 }
-# webscraping_log("Teste novo")
 
 if (length(args) == 0) stop("\n\nNenhum argumento foi passado, parando......\n\n")
 
 for (i in 1:length(args)) {
 
-    if (args[i] == "jornal") {
-        con <- dbConnect(MySQL(), dbname = "jornal", host = "127.0.0.1")
-        # dbListTables(con)
+    if (args[i] == "g1globo") {
+        con <- dbConnect(MySQL(), dbname = "webscraping", host = "127.0.0.1")
 
         query <- paste0("'", Sys.Date() - 1:2, "'", collapse = ", ")
         query <- paste0("SELECT COUNT(*) FROM g1globo WHERE data IN (", query, ")")
@@ -40,6 +38,8 @@ for (i in 1:length(args)) {
             webscraping(message)
         }
         
+    } else if (args[i] == "superbid") {
+        
     } else if (args[i] == "crontab") {
         library(cronR)
 
@@ -48,7 +48,7 @@ for (i in 1:length(args)) {
         f <- "telegram.R"
 
         ## Add mais scripts AQUI
-        cmd <- cron_rscript(f, rscript_args = c("jornal", "google_flights"))
+        cmd <- cron_rscript(f, rscript_args = c("jornal", "google_flights", "superbid"))
         cron_add(cmd, at = "10:00", id = "telegram_webscraping", tags =  "webscraping", 
                  description = "Informa status da coleta de dados.")
     } 

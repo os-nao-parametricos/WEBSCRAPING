@@ -8,7 +8,7 @@ quantidade, preço, duração entre outras informações, as passagens áreas de
 disponiveis por terceiros. Os scripts disponibilizados servem para coletar
 preços de passagens diariamente.  O objetivo da coleta, inicialmente, é
 visualizar a precificação das passagens ao longo do tempo fixando um intervalo
-de tempo no futuro para a compra das passagens.
+de tempo no futuro para a compra.
 
 A coleta é feita da seguinte forma:
 
@@ -19,7 +19,8 @@ A coleta é feita da seguinte forma:
 2. Depois é coletado as páginas em html de acordo com as informações contidas no
    arquivo **url.csv**.
 
-3. Por último é coletado as informações, tabulado e salvo no banco de dados MySQL.
+3. Por último é raspado as informações dos htmls, tabulado e salvo no banco de
+dados MySQL.
 
 As informações do arquivo **url.csv** são obtidas do site google flights como é
 mostrado na figura abaixo.
@@ -30,14 +31,13 @@ mostrado na figura abaixo.
 Para coletar os dados do Google Flights baixe o repositório e de permissão para
 os sequintes arquivos
 
-`chmod +x crontab.R google_flights/google_flights_url.R
-google_flights/google_flights_collect.R google_flights/google_flights_scrap.R`
+`chmod +x crontab.R google_flights/google_flights.R
 
 depois 
 
-`Rscript google_flights/google_flights_url.R`
+`Rscript google_flights/google_flights.R url`
 
-que vai criar a pasta e o arquivo **url.csv**, preencha-o com as informações de
+que vai criar a pasta e o arquivo **url.csv**. Preencha-o com as informações de
 voo que deseja coletar 
 
 ![](img/exemplo.png)
