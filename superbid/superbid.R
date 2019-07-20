@@ -17,7 +17,7 @@ if (dir.exists("~/databases/superbid/")) {
     setwd("~/databases/superbid/")    
 } else {
     if (args != "config")
-        stop("Primeiro deve-se executar: \n\t\t $ Rscript scrap.R config")
+        stop("Primeiro deve-se executar: \n\t\t $ Rscript superbid.R config")
 }
 
 # Selenium ---------------------------------------------------------------------
@@ -50,7 +50,6 @@ if (args == "config") {
 
 
     # Coleta URL's da API ------------------------
-    # Armazena no MySQL
     url <- "https://www.superbid.net"
 
     remDr$navigate(url)
@@ -82,9 +81,49 @@ if (args == "config") {
     
 } else if (args == "coleta") {
     # Coleta URL's com a data de ONTEM
-    tb <- readRDS("data.RData")
-    tb <- tb %>% filter(d <= Sys.Date() - 1) 
-    # Coleta .html
+    tb <- readRDS("coletar.RData")
+    tb <- tb %>% filter(d <= Sys.Date() - 1 & index == 0)
+
+    DIR <- paste0("data/", Sys.Date() - 1)
+    dir.create(DIR)
+
+    i <- 1
+    for (i in i:nrow(tb)) {    
+        remDr$navigate(tb[i, "u"][[1]])
+        Sys.sleep(2)
+        
+        h <- htmlParse(remDr$getPageSource()[[1]], encoding = "utf-8")
+        xpath <- "//div[@class='gwt-Label corner2px lcd chronometer close']"
+        status <- tolower(xpathSApply(h, xpath, xmlValue))
+        # browseURL(tb[i, "u"][[1]])
+        
+        if (length(status) == 0) {
+            tb[i, "index"] <- -1
+            next
+        } else {
+            # Coleta imagens -----------------------------------------------------------
+            img <- xpathSApply(h, "//div[@class='rsNavItem rsThumb']/img",
+                               xmlGetAttr, "data-zoom-image")
+            
+            if (length(img) > 0) {
+                img <- str_extract(img, ".+jpg")
+                dir.create(paste0("img/", tb[i, "id"][[1]]))
+                for (m in 1:length(img))
+                    download.file(img[m], paste0("img/", tb[i, "id"][[1]], "/", m, ".jpg"))
+            }
+            
+            # Baixa html ---------------------------------------------------------------
+            xml2::write_html(xml2::read_html(remDr$getPageSource()[[1]]),
+                             paste0(DIR, "/", tb[i, "id"][[1]], ".html"))
+            
+            tb[i, "index"] <- 1
+            
+        }
+    }
+
+    remDr$close()
+    saveRDS(tb, "coletar.RData")
+    
 } else if (args == "url") {
     config <- as_tibble(readRDS("config.RData"))
     tb <- tibble()
@@ -120,15 +159,18 @@ if (args == "config") {
         cat(i, sep = "\n")
     }
     tb <- tb %>% distinct()
+    tb$index <- 0
 
     ## Somente os fechamentos de hoje
     tb <- tb %>%
         filter(d == Sys.Date())
 
-    if (file.exists("data.RData")) {
-        tb.old <- readRDS("data.RData")
+    if (file.exists("coletar.RData")) {
+        tb.old <- readRDS("coletar.RData")
         tb <- bind_rows(tb, tb.old) %>%
             distinct()
     }
-    saveRDS(tb, "data.RData")
+
+    remDr$close()
+    saveRDS(tb, "coletar.RData")
 }

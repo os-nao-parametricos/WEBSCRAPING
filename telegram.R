@@ -39,19 +39,11 @@ for (i in 1:length(args)) {
         }
         
     } else if (args[i] == "superbid") {
-        
-    } else if (args[i] == "crontab") {
-        library(cronR)
-
-        cron_rm(id = "telegram_webscraping")
-        
-        f <- "telegram.R"
-
-        ## Add mais scripts AQUI
-        cmd <- cron_rscript(f, rscript_args = c("jornal", "google_flights", "superbid"))
-        cron_add(cmd, at = "10:00", id = "telegram_webscraping", tags =  "webscraping", 
-                 description = "Informa status da coleta de dados.")
-    } 
+        n <- length(list.files(paste0("~/databases/superbid/data/", Sys.Date() - 1)))
+        dt <- format(Sys.Date(), "%d/%m/%Y")
+        message <- paste0("*", dt, "* - Superbid - Total de páginas coletadas ", n)
+        webscraping_log(message)
+    }
 }
 
 
