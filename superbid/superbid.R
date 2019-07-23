@@ -16,8 +16,9 @@ library(RSelenium)
 if (dir.exists("~/databases/superbid/")) {
     setwd("~/databases/superbid/")    
 } else {
-    if (args != "config")
+    if (args != "config") {
         stop("Primeiro deve-se executar: \n\t\t $ Rscript superbid.R config")
+    }
 }
 
 # Selenium ---------------------------------------------------------------------
@@ -30,15 +31,15 @@ remDr$open()
 
 # Verifica Internet ------------------------------------------------------------
 # https://stackoverflow.com/questions/5076593/how-to-determine-if-you-have-an-internet-connection-in-r
-havingIP <- function() {
-    if (.Platform$OS.type == "windows") {
-        ipmessage <- system("ipconfig", intern = TRUE)
-    } else {
-        ipmessage <- system("ifconfig", intern = TRUE)
-    }
-    validIP <- "((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)[.]){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)"
-    any(grep(validIP, ipmessage))
-}
+# havingIP <- function() {
+#     if (.Platform$OS.type == "windows") {
+#         ipmessage <- system("ipconfig", intern = TRUE)
+#     } else {
+#         ipmessage <- system("ifconfig", intern = TRUE)
+#     }
+#     validIP <- "((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)[.]){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)"
+#     any(grep(validIP, ipmessage))
+# }
 
 if (args == "config") {
     # Cria diretório -----------------------------
@@ -48,8 +49,7 @@ if (args == "config") {
     if (!dir.exists(paste0(DIR, "/data"))) dir.create(paste0(DIR, "/data"))
     if (!dir.exists(paste0(DIR, "/img"))) dir.create(paste0(DIR, "/img"))
 
-
-    # Coleta URL's da API ------------------------
+    # Coleta URL's da "API" ----------------------
     url <- "https://www.superbid.net"
 
     remDr$navigate(url)
@@ -81,8 +81,13 @@ if (args == "config") {
     
 } else if (args == "coleta") {
     # Coleta URL's com a data de ONTEM
-    tb <- readRDS("coletar.RData")
-    tb <- tb %>% filter(d <= Sys.Date() - 1 & index == 0)
+    f <- paste0("order/", Sys.Date() - 1, ".RData")
+
+    if (file.exists(f)) {
+        tb <- readRDS(f)
+    } else {
+        stop("Sem orders.")
+    }
 
     DIR <- paste0("data/", Sys.Date() - 1)
     dir.create(DIR)
@@ -122,23 +127,17 @@ if (args == "config") {
     }
 
     remDr$close()
-    saveRDS(tb, "coletar.RData")
+    saveRDS(tb, f)
     
 } else if (args == "url") {
-    config <- as_tibble(readRDS("config.RData"))
+    config <- readRDS("config.RData")
     tb <- tibble()
 
     for (i in 1:nrow(config)) {
         url <- paste0(config$url[i], "&ord=pordata&size=100")
 
-        while (TRUE) {
-            if (havingIP()) {
-                remDr$navigate(url)
-                break
-            } else {
-                Sys.sleep(2)
-            }
-        }
+        remDr$navigate(url)
+        Sys.sleep(2)
         
         h <- htmlParse(remDr$getPageSource()[[1]], encoding = "UTF-8")
 
@@ -162,15 +161,8 @@ if (args == "config") {
     tb$index <- 0
 
     ## Somente os fechamentos de hoje
-    tb <- tb %>%
-        filter(d == Sys.Date())
-
-    if (file.exists("coletar.RData")) {
-        tb.old <- readRDS("coletar.RData")
-        tb <- bind_rows(tb, tb.old) %>%
-            distinct()
-    }
-
+    tb <- tb %>% filter(d == Sys.Date())
+    
     remDr$close()
-    saveRDS(tb, "coletar.RData")
+    saveRDS(tb, paste0("order/", Sys.Date(), ".RData"))
 }

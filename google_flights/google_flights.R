@@ -5,9 +5,6 @@ library(XML)
 
 args <- commandArgs(trailingOnly = TRUE)
 
-if (length(args) == 0)
-    stop("Não foi passado nenhum argumento, parando...")
-
 # Cria caminho se não existir
 if (!dir.exists("~/databases")) {
     dir.create("~/databases")
@@ -20,7 +17,7 @@ if (!dir.exists("~/databases/google_flights")) {
 # Muda diretorio
 setwd("~/databases/google_flights")
 
-if (args == "url") {
+if (args == "config") {
     # Cria arquivo que é utilizado para coletar as viagens
     url <- data.frame(matrix(ncol = 6, nrow = 0), stringsAsFactors = FALSE)
     colnames(url) <- c("id", "de", "para", "di", "df", "url")
@@ -37,8 +34,9 @@ if (args == "url") {
     # remDr$closeall()
     remDr$open()
     
-    if (!file.exists("url.csv"))
+    if (!file.exists("url.csv")) {
         stop("Arquivo url.csv não existe.\n\nPor favor execute: \n\t\t $ Rscript google_flights.R url")
+    }
     
     voo <- read.csv2("url.csv", stringsAsFactors = FALSE)
 
@@ -91,7 +89,7 @@ if (args == "url") {
 } else {
 
     cat("\n\nNenhum argumento identificado.\nPor favor execute um dos três argumentos possiveis:\n\n",
-        "\t\turl: para criar arquivo de configurações de coleta",
+        "\t\tconfig: para criar arquivo de configurações de coleta",
         "\n\t\tcoleta: para coletar os dados",
         "\n\t\tscrap: para raspar e tabular as informações coletadas",
         "\n\n\t\tExemplo:  $ Rscript google_flights coleta\n\n")

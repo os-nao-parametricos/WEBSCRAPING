@@ -40,6 +40,8 @@ for (i in 1:length(args)) {
         
     } else if (args[i] == "superbid") {
         n <- length(list.files(paste0("~/databases/superbid/data/", Sys.Date() - 1)))
+        n2 <- readRDS("~/databases/superbid/coletar.RData")
+        n2 <- sum(n2$index == 0 & n2$d == Sys.Date())
         dt <- format(Sys.Date(), "%d/%m/%Y")
         message <- paste0("*", dt, "* - Superbid - Total de páginas coletadas ", n)
         webscraping_log(message)

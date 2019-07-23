@@ -14,18 +14,18 @@ if (length(cron_ls(id = "telegram_webscraping1")) == 0 |
     ## IMPORTANT
 
     # Manha --------------------------------------
-    args <- c("jornal", "google_flights")
+    args <- c("g1globo", "google_flights", "superbid")
     cmd <- cron_rscript(f, rscript_args = args)
     cron_add(cmd, at = "10:00", id = "telegram_webscraping1",
              tags =  "webscraping",
              description = "Informa status da coleta de dados.")
 
     # Noite --------------------------------------
-    args <- c("superbid")
-    cmd <- cron_rscript(f, rscript_args = args)
-    cron_add(cmd, at = "21:00", id = "telegram_webscraping2",
-             tags =  "webscraping",
-             description = "Informa status da coleta de dados.")
+    # args <- c("superbid")
+    # cmd <- cron_rscript(f, rscript_args = args)
+    # cron_add(cmd, at = "21:00", id = "telegram_webscraping2",
+    #          tags =  "webscraping",
+    #          description = "Informa status da coleta de dados.")
 } 
 
 # ------------------------------------------------------------------------------
