@@ -39,12 +39,25 @@ for (i in 1:length(args)) {
         }
         
     } else if (args[i] == "superbid") {
-        n <- length(list.files(paste0("~/databases/superbid/data/", Sys.Date() - 1)))
-        n2 <- readRDS("~/databases/superbid/coletar.RData")
-        n2 <- sum(n2$index == 0 & n2$d == Sys.Date())
+        if (file.exists(paste0("~/databases/superbid/order/", Sys.Date() - 1, ".RData"))) {
+            superbid <- readRDS(paste0("~/databases/superbid/order/", Sys.Date() - 1, ".RData"))
+            n1 <- (sum(superbid$index == 1)/nrow(superbid)) * 100
+            n1t <- nrow(superbid)
+        } else {
+            n1 <- 0
+        }
+
+        if (file.exists(paste0("~/databases/superbid/order/", Sys.Date(), ".RData"))) {
+            superbid2 <- readRDS(file.exists(paste0("~/databases/superbid/order/", Sys.Date(), ".RData")))
+            n2 <- nrow(superbid2)
+        } else {
+            n2 <- 0
+        }
+
         dt <- format(Sys.Date(), "%d/%m/%Y")
-        message <- paste0("*", dt, "* - Superbid - Total de páginas coletadas ", n)
-        webscraping_log(message)
+        message <- paste0("*", dt, "* - Superbid - Percentual de anúncios coletados: ",
+                          n1, "% de um total de ", n1t, "\n Total de novos anúncios: ", n2)
+        webscraping_log(message)        
     }
 }
 

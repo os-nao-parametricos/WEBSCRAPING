@@ -3,8 +3,8 @@
 library(cronR)
 
 # Telegram
-cron_rm(id = "telegram_webscraping1")
-cron_rm(id = "telegram_webscraping2")
+cron_rm(id = "telegram_webscraping_manha")
+# cron_rm(id = "telegram_webscraping2")
 if (length(cron_ls(id = "telegram_webscraping1")) == 0 |
     length(cron_ls(id = "telegram_webscraping2")) == 0) {
 
@@ -16,7 +16,7 @@ if (length(cron_ls(id = "telegram_webscraping1")) == 0 |
     # Manha --------------------------------------
     args <- c("g1globo", "google_flights", "superbid")
     cmd <- cron_rscript(f, rscript_args = args)
-    cron_add(cmd, at = "10:00", id = "telegram_webscraping1",
+    cron_add(cmd, at = "10:00", id = "telegram_webscraping_manha",
              tags =  "webscraping",
              description = "Informa status da coleta de dados.")
 
@@ -56,7 +56,7 @@ cron_rm(id = "superbid2")
 if (length(cron_ls(id = "superbid")) == 0) {
     f <- paste0(getwd(), "/superbid/superbid.R")
 
-    cmd <- cron_rscript(f, rscript_args = "url")
+    cmd <- cron_rscript(f, rscript_args = "order")
     cron_add(cmd, at = "8:00", id = "superbid1", tags =  "webscraping", 
              description = "Coleta dados do site de leião www.superbid.com.br")
 

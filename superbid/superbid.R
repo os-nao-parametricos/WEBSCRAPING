@@ -6,11 +6,8 @@ args <- args[1]
 # Bibliotecas
 library(tidyverse)
 library(lubridate)
-
 library(RMySQL)
-
 library(XML)
-library(RSelenium)
 
 # Muda diretorio ---------------------------------------------------------------
 if (dir.exists("~/databases/superbid/")) {
@@ -21,41 +18,19 @@ if (dir.exists("~/databases/superbid/")) {
     }
 }
 
-# Selenium ---------------------------------------------------------------------
-remDr <- remoteDriver(
-    remoteServerAddr = "localhost",
-    port = 4445L,
-    browserName = "firefox"
-)
-remDr$open()
-
-# Verifica Internet ------------------------------------------------------------
-# https://stackoverflow.com/questions/5076593/how-to-determine-if-you-have-an-internet-connection-in-r
-# havingIP <- function() {
-#     if (.Platform$OS.type == "windows") {
-#         ipmessage <- system("ipconfig", intern = TRUE)
-#     } else {
-#         ipmessage <- system("ifconfig", intern = TRUE)
-#     }
-#     validIP <- "((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)[.]){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)"
-#     any(grep(validIP, ipmessage))
-# }
-
 if (args == "config") {
     # Cria diretório -----------------------------
     DIR <- "~/databases/superbid"
     if (!dir.exists(DIR)) dir.create(DIR)
-    # if (!dir.exists(paste0(DIR, "/config"))) dir.create(paste0(DIR, "/config"))
     if (!dir.exists(paste0(DIR, "/data"))) dir.create(paste0(DIR, "/data"))
     if (!dir.exists(paste0(DIR, "/img"))) dir.create(paste0(DIR, "/img"))
 
     # Coleta URL's da "API" ----------------------
     url <- "https://www.superbid.net"
-
-    remDr$navigate(url)
+    h <- httr::GET(url, httr::config(ssl_verifypeer = FALSE))
 
     # Parse da página
-    h <- htmlParse(remDr$getPageSource()[[1]], encoding = "utf-8")
+    h <- htmlParse(h, encoding = "utf-8")
 
     h.cat <- getNodeSet(h, "//ul[@id='menuProdutoTipo']/li")
 
@@ -74,9 +49,6 @@ if (args == "config") {
     # ID das categorias
     out$cat <- str_extract(out$url, "[0-9]{5}$")
 
-    # Fecha navegador
-    remDr$close()
-
     saveRDS(out, "config.RData")
     
 } else if (args == "coleta") {
@@ -93,17 +65,17 @@ if (args == "config") {
     dir.create(DIR)
 
     i <- 1
-    for (i in i:nrow(tb)) {    
-        remDr$navigate(tb[i, "u"][[1]])
-        Sys.sleep(2)
+    for (i in i:nrow(tb)) {
+        h <- httr::GET(tb[i, "u"][[1]], httr::config(ssl_verifypeer = FALSE))
+        h <- htmlParse(h, encoding = "utf-8")
         
-        h <- htmlParse(remDr$getPageSource()[[1]], encoding = "utf-8")
         xpath <- "//div[@class='gwt-Label corner2px lcd chronometer close']"
         status <- tolower(xpathSApply(h, xpath, xmlValue))
         # browseURL(tb[i, "u"][[1]])
         
         if (length(status) == 0) {
             tb[i, "index"] <- -1
+            Sys.sleep(1)
             next
         } else {
             # Coleta imagens -----------------------------------------------------------
@@ -122,24 +94,20 @@ if (args == "config") {
                              paste0(DIR, "/", tb[i, "id"][[1]], ".html"))
             
             tb[i, "index"] <- 1
-            
+            Sys.sleep(1)
         }
     }
 
-    remDr$close()
     saveRDS(tb, f)
-    
-} else if (args == "url") {
+} else if (args == "order") {
     config <- readRDS("config.RData")
     tb <- tibble()
 
     for (i in 1:nrow(config)) {
         url <- paste0(config$url[i], "&ord=pordata&size=100")
 
-        remDr$navigate(url)
-        Sys.sleep(2)
-        
-        h <- htmlParse(remDr$getPageSource()[[1]], encoding = "UTF-8")
+        h <- httr::GET(tb[i, "u"][[1]], httr::config(ssl_verifypeer = FALSE))
+        h <- htmlParse(h, encoding = "utf-8")
 
         dt <- xpathSApply(h, "//strong[@class='data']", xmlValue)
         if (length(dt) == 0) next
@@ -163,6 +131,7 @@ if (args == "config") {
     ## Somente os fechamentos de hoje
     tb <- tb %>% filter(d == Sys.Date())
     
-    remDr$close()
     saveRDS(tb, paste0("order/", Sys.Date(), ".RData"))
+} else if (args == "scrap") {
+    
 }
