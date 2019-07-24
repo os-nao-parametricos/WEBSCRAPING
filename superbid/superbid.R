@@ -23,6 +23,7 @@ if (args == "config") {
     DIR <- "~/databases/superbid"
     if (!dir.exists(DIR)) dir.create(DIR)
     if (!dir.exists(paste0(DIR, "/data"))) dir.create(paste0(DIR, "/data"))
+    if (!dir.exists(paste0(DIR, "/data"))) dir.create(paste0(DIR, "/order"))
     if (!dir.exists(paste0(DIR, "/img"))) dir.create(paste0(DIR, "/img"))
 
     # Coleta URL's da "API" ----------------------
@@ -106,7 +107,7 @@ if (args == "config") {
     for (i in 1:nrow(config)) {
         url <- paste0(config$url[i], "&ord=pordata&size=100")
 
-        h <- httr::GET(tb[i, "u"][[1]], httr::config(ssl_verifypeer = FALSE))
+        h <- httr::GET(url, httr::config(ssl_verifypeer = FALSE))
         h <- htmlParse(h, encoding = "utf-8")
 
         dt <- xpathSApply(h, "//strong[@class='data']", xmlValue)
@@ -124,6 +125,7 @@ if (args == "config") {
 
         tb <- bind_rows(tb, tb_new)
         cat(i, sep = "\n")
+        Sys.sleep(1)
     }
     tb <- tb %>% distinct()
     tb$index <- 0

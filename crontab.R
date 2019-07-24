@@ -51,16 +51,16 @@ if (length(cron_ls(id = "google_flights")) == 0) {
 }
 
 # superbid
-cron_rm(id = "superbid1")
-cron_rm(id = "superbid2")
+cron_rm(id = "superbid_order")
+cron_rm(id = "superbid_coleta")
 if (length(cron_ls(id = "superbid")) == 0) {
     f <- paste0(getwd(), "/superbid/superbid.R")
 
     cmd <- cron_rscript(f, rscript_args = "order")
-    cron_add(cmd, at = "8:00", id = "superbid1", tags =  "webscraping", 
+    cron_add(cmd, at = "8:00", id = "superbid_order", tags =  "webscraping", 
              description = "Coleta dados do site de leião www.superbid.com.br")
 
-    # cmd <- cron_rscript(f, rscript_args = "coleta")
-    # cron_add(cmd, at = "20:00", id = "superbid2", tags =  "webscraping", 
-    #          description = "Coleta dados do site de leião www.superbid.com.br")
+    cmd <- cron_rscript(f, rscript_args = "coleta")
+    cron_add(cmd, at = "8:15", id = "superbid_coleta", tags =  "webscraping", 
+             description = "Coleta dados do site de leião www.superbid.com.br")
 }
