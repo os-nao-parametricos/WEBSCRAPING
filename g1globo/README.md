@@ -10,24 +10,29 @@ do mundo e muitos outros tipos de mineração de texto.
 
 # Coleta das notícias
 
-Para coletar todas as notícias disponíveis no G1 basta executar o seguinte
-comando no terminal:
+Para coletar todas as notícias disponíveis no G1 primeiro você deve configurar a
+pasta onde será armazenado as notícias, no caso, `~/databases/g1globo`
+
+`$ Rscript g1globo.R config`
+
+Depois você pode baixar todas as notícias disponíveis até então que serão salvas
+em `~/databases/g1globo/data.RData`.
 
 `$ Rscript g1globo.R tudo`
-
-TODO - Precisa otimizar
-
-que vai coletar todas as notícias e armazenar no banco de dados MySQL. Para
-configurar o banco de dados click [aqui](https://github.com/osnaoparametricos/WEBSCRAPING).
 
 Para coletar somente as notícias mais recentes execute o seguinte comando no
 terminal:
 
-`$ Rscript g1globo.R hoje**
+`$ Rscript g1globo.R coleta`
 
-que vai coletar as notícias mais recentes e armazenar no banco de dados MySQL.
+que vai salva-las em `~/databases/g1globo/Sys.Date()-1.RData`. Este último
+código pode-se ser agendado para ser executado diáriamente com o programa 
+`crontab.R` a partir do seguinte comando:
 
-***
+`$ Rscript crontab.R g1globo`
 
-O fluxo ideial é que se execute o primeiro comando para pegar todas as noticias
-disponiveis e em seguinte agende uma coleta diarias das noticias.
+por *padrão* é agendado todos os dias as 8:15 da manhã.
+
+# Banco de dados
+
+TODO

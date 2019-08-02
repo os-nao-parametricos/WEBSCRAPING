@@ -9,6 +9,8 @@ library(lubridate)
 library(RMySQL)
 library(XML)
 
+library(RSelenium)
+
 # Muda diretorio ---------------------------------------------------------------
 if (dir.exists("~/databases/superbid/")) {
     setwd("~/databases/superbid/")    
@@ -53,6 +55,14 @@ if (args == "config") {
     saveRDS(out, "config.RData")
     
 } else if (args == "coleta") {
+
+    remDr <- remoteDriver(
+        remoteServerAddr = "localhost",
+        port = 4445L,
+        browserName = "firefox"
+    )
+    remDr$open()
+    
     # Coleta URL's com a data de ONTEM
     f <- paste0("order/", Sys.Date() - 1, ".RData")
 
@@ -62,12 +72,20 @@ if (args == "config") {
         stop("Sem orders.")
     }
 
+    if (nrow(tb) == 0) stop("Sem orders.")
+
     DIR <- paste0("data/", Sys.Date() - 1)
     dir.create(DIR)
 
-    i <- 1
+    i <- which(tb$index==0)[1]
     for (i in i:nrow(tb)) {
-        h <- httr::GET(tb[i, "u"][[1]], httr::config(ssl_verifypeer = FALSE))
+
+        remDr$navigate(tb[i, "u"][[1]])
+        Sys.sleep(2)
+        
+        # Precisa executar o js na página TODO
+        # h <- httr::GET(tb[i, "u"][[1]], httr::config(ssl_verifypeer = FALSE))
+        h <- remDr$getPageSource()[[1]]
         h <- htmlParse(h, encoding = "utf-8")
         
         xpath <- "//div[@class='gwt-Label corner2px lcd chronometer close']"
@@ -84,7 +102,8 @@ if (args == "config") {
                                xmlGetAttr, "data-zoom-image")
             
             if (length(img) > 0) {
-                img <- str_extract(img, ".+jpg")
+                if (is.list(img)) img <- do.call(c, img)
+                img <- str_extract(img, ".+jpg|.+jpeg")
                 dir.create(paste0("img/", tb[i, "id"][[1]]))
                 for (m in 1:length(img))
                     download.file(img[m], paste0("img/", tb[i, "id"][[1]], "/", m, ".jpg"))
@@ -95,11 +114,11 @@ if (args == "config") {
                              paste0(DIR, "/", tb[i, "id"][[1]], ".html"))
             
             tb[i, "index"] <- 1
+            saveRDS(tb, f)
             Sys.sleep(1)
         }
     }
-
-    saveRDS(tb, f)
+    
 } else if (args == "order") {
     config <- readRDS("config.RData")
     tb <- tibble()
@@ -132,8 +151,9 @@ if (args == "config") {
 
     ## Somente os fechamentos de hoje
     tb <- tb %>% filter(d == Sys.Date())
-    
+    cat("\n\n------------------------------------- FIM -------------------------------------")
     saveRDS(tb, paste0("order/", Sys.Date(), ".RData"))
+    
 } else if (args == "scrap") {
     
 }

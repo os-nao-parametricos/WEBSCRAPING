@@ -59,7 +59,7 @@ if (args == "config") {
         }
     }
 
-    remDr$closeall()
+    remDr$close()
 } else if (args == "scrap") {
     # TODO
     # h <- htmlParse("2019_07_07/2019_10_06_1.html")

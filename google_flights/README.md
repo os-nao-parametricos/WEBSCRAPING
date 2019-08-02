@@ -14,7 +14,7 @@ de tempo no futuro para a compra.
 
 Para começar a coletar os dados primeiro execute o seguinte comando
 
-`Rscript google_flights config`
+`$ Rscript google_flights config`
 
 que vai criar uma pasta em `~/databases/google_flights` e um arquivo chamado de
 **url.csv**. Este arquivo .csv tem seis colunas que você deverá preencha-las com
@@ -58,7 +58,7 @@ data de partida entre 15/12/2019 e 15/01/2020.
 
 Após configurar as compras das passagens baste executar o seguinte comando:
 
-`Rscript google_flights coleta`
+`$ Rscript google_flights.R coleta`
 
 que vai coletar os dados e armazenar em `~/databases/google_flights/yyyy_mm_dd`.
 

@@ -48,7 +48,7 @@ for (i in 1:length(args)) {
         }
 
         if (file.exists(paste0("~/databases/superbid/order/", Sys.Date(), ".RData"))) {
-            superbid2 <- readRDS(file.exists(paste0("~/databases/superbid/order/", Sys.Date(), ".RData")))
+            superbid2 <- readRDS(paste0("~/databases/superbid/order/", Sys.Date(), ".RData"))
             n2 <- nrow(superbid2)
         } else {
             n2 <- 0
