@@ -1,0 +1,12 @@
+```{r, echo = FALSE, warning = FALSE, message = FALSE, error = FALSE}
+require(knitr)
+opts_chunk$set(
+  echo = FALSE,
+  warning = FALSE,
+  error = FALSE, 
+  message = FALSE
+  # cache = TRUE
+)
+
+```
+

@@ -1,4 +1,3 @@
-source("/home/gabriel/suporte/ciencia_de_dados/programacao/R/function/tidy/etl.R")
 
 # package -----------------------------------------------------------------
 require(rvest)
@@ -8,7 +7,12 @@ require(dplyr)
 require(purrr)
 
 
-# find_last_page  ------------------------------------------------------------------
+# get number of _last_page  ------------------------------------------------
+#' @title get the number of last page
+#' @function get.last.page 
+#' @param link - complete link in the city
+#' @return - max number of pagination
+
 get.last.page <- function(link){
   
   pages_data <-
@@ -25,6 +29,10 @@ get.last.page <- function(link){
 }
 
 # extract links  -------------------------------------------------------------------
+#' @title extract all links 
+#' @function get.all.links
+#' @param page - pages of events 
+#' @return - extract all links, to go on event card
 
 get.all.link <- function(page){
   
@@ -40,6 +48,11 @@ get.all.link <- function(page){
 
 
 # extract.data ------------------------------------------------------------
+
+#' @title extract all links 
+#' @function get.all.links
+#' @param link - link card event 
+#' @return - the informations in format data.frame
 
 extract.attr.union <- function(link){
   
@@ -101,40 +114,30 @@ extract.attr.union <- function(link){
       character.to.na()
   } 
   
-  nd_df <- tibble("date" = date, "title" = title, "price" = price, "description" = description, "longitude"= long, "latitude" = lat, "url" = link)
+  nd_df <- tibble("date" = date, 
+                  "title" = title, 
+                  "price" = price,
+                  "description" = description, 
+                  "longitude"= long, 
+                  "latitude" = lat, 
+                  "url" = link)
   
   return(nd_df)
   
 }
 
-
-# apply function -----------------------------------------------------------
-
+# create_url_to_city ------------------------------------------------------
 
 
-# # all_events
-# all_event <- "https://www.eventbrite.com.br/d/brazil--balne%C3%A1rio-cambori%C3%BA/all-events/"
-# 
-# # looping page
-# loop_page_event <- paste0(all_event, "?page=")
-# 
-# # get_all_links
-# html_all_event <- read_html(all_event)
-# list_of_page <- str_c(url_ch, 1:get_last_page(html_all_event))
-# 
-# # 
-# all_event_url <- furrr::future_map(list_of_page, ~get.all.link(.x)) %>% unlist()
-# 
-# # Extract_all_events
-# future::plan(future::multiprocess)
-# eventbrite <- try(
-#   furrr::future_map_dfr(all_event_url, ~extract.attr.union(.x))
-# )
 
 # functio.to.apply --------------------------------------------------------
+#' @title extract data from eventbrite 
+#' @function get.eventbrite
+#' @param url - url event from a city 
+#' @return - the informations all events in the city
+
 
 get.eventbrite <- function(url){
-  # all_event <- "https://www.eventbrite.com.br/d/brazil--balne%C3%A1rio-cambori%C3%BA/all-events/"
   all_event <- url
   
   loop_page_event <- paste0(all_event, "?page=")
@@ -155,8 +158,14 @@ get.eventbrite <- function(url){
 }
 
 
-# event_brite <- get.eventbrite("https://www.eventbrite.com.br/d/brazil--balne%C3%A1rio-cambori%C3%BA/all-events/")
-# eventbrite_cwb <- get.eventbrite(url = "https://www.eventbrite.com.br/d/brazil--curitiba/all-events/")
+
+
+
+
+
+
+
+
 
 
 

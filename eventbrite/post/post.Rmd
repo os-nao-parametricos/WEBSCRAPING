@@ -5,7 +5,7 @@ editor_options:
   chunk_output_type: console
 ---
 
-```{r, child = "/home/gabriel/suporte/ciencia_de_dados/programacao/R/function/comunicate/knitr_set.Rmd"}
+```{r, child = "../function/knitr_set.Rmd"}
 
 ```
 
@@ -18,7 +18,8 @@ require(ggplot2)
 
 
 ```{r}
-source("../function/function_evertbrite.R")
+source("../function/get_evertbrite.R")
+source("../function/etl.R")
 ```
 
 
